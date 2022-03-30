@@ -139,3 +139,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 CNT_POST: int = 10
+POST_MOD: int = 15
+PGN_1_PAGE: int = 10
+PGN_RANGE: int = 13

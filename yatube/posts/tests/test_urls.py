@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
+from http import HTTPStatus
 
 from posts.models import Post, Group
 
@@ -13,59 +14,63 @@ class PostURLTests(TestCase):
         cls.author = User.objects.create_user(username='test_name',
                                               email='test@mail.ru',
                                               password='test-pass')
-        # Создадим запись в БД для проверки доступности адреса task/test-slug/
         cls.post = Post.objects.create(
             author=cls.author,
             text='Тестовый текст',
         )
-
         cls.group = Group.objects.create(
             title='Тестовое название группы',
             slug='rat'
         )
 
     def setUp(self):
-        # Создаем неавторизованный клиент
         self.guest_client = Client()
-        # Создаем пользователя
         self.user = User.objects.create_user(username='Name')
-        # Создаем второй клиент
         self.authorized_client = Client()
-        # Авторизуем пользователя
         self.authorized_client.force_login(self.user)
         self.authorized_author = Client()
-        # Авторизуем пользователя
         self.authorized_author.force_login(self.author)
-        self.post.id = 1
 
     def test_url_exists_at_desired_location(self):
+        """Тест проверяет доступность страниц по адресу."""
         urls = {
             '/',
-            '/group/rat/',
-            '/profile/Name/',
-            '/posts/1/',
+            f'/group/{self.group.slug}/',
+            f'/profile/{self.user.username}/',
+            f'/posts/{self.post.id}/',
         }
         for address in urls:
             with self.subTest():
                 response = self.guest_client.get(address)
-                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_url_guest_user_create(self):
+        """Гость редиректится корректно со страници создания поста"""
+        response = self.guest_client.get('/create/')
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_url_guest_user_edit(self):
+        """Гость редиректится корректно со страници редактирования поста"""
+        response = self.guest_client.get(f'/posts/{self.post.id}/edit/')
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
     def test_url_for_auth_user(self):
+        """Страница новая запись доступна авторизованному пользователю."""
         response = self.authorized_client.get('/create/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_url_for_author(self):
-        response = self.authorized_author.get('/posts/1/edit/')
-        self.assertEqual(response.status_code, 200)
+        """Страница редактирования поста доступна автору поста."""
+        response = self.authorized_author.get(f'/posts/{self.post.id}/edit/')
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
-        # Шаблоны по адресам
         templates_url_names = {
             'posts/index.html': '/',
-            'posts/group_list.html': '/group/rat/',
-            'posts/profile.html': '/profile/Name/',
-            'posts/post_detail.html': '/posts/1/',
+            'posts/group_list.html': f'/group/{self.group.slug}/',
+            'posts/profile.html': f'/profile/{self.user.username}/',
+            'posts/post_detail.html': f'/posts/{self.post.id}/',
         }
         for template, address in templates_url_names.items():
             with self.subTest():
@@ -73,15 +78,48 @@ class PostURLTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_url_for_auth_user_correct_template(self):
-        # страница создания поста авторизованным юзером
+        """шаблон создания поста авторизованным юзером."""
         response = self.authorized_client.get('/create/')
         self.assertTemplateUsed(response, 'posts/create_post.html')
 
     def test_for_author_correct_template(self):
-        # страница создания поста авторизованным автором
-        response = self.authorized_author.get('/posts/1/edit/')
+        """шаблон создания поста авторизованным автором."""
+        response = self.authorized_author.get(f'/posts/{self.post.id}/edit/')
         self.assertTemplateUsed(response, 'posts/create_post.html')
 
     def test_page_for_404(self):
+        """Несуществующая страница возвращает 404."""
         response = self.guest_client.get('/unexisting_page/')
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+
+    def test_auth_user_redirects_from_edit_page(self):
+        """Не автор поста редиректится с редактирования чужого поста"""
+        response = self.authorized_client.get(f'/posts/{self.post.id}/edit/')
+        self.assertRedirects(response, f'/posts/{self.post.id}/')
+
+
+class StaticPagesURLTests(TestCase):
+    def setUp(self):
+        self.guest_client = Client()
+
+    def test_about_url_exists_at_desired_location(self):
+        """Проверка доступности адреса /about/author/ & /about/tech/."""
+        urls = {
+            '/about/author/',
+            '/about/tech/',
+        }
+        for address in urls:
+            with self.subTest():
+                response = self.guest_client.get(address)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_about_url_uses_correct_template(self):
+        """Проверка шаблона для адреса /about/author & /about/tech/."""
+        templates_urls = {
+            'about/author.html': '/about/author/',
+            'about/tech.html': '/about/tech/',
+        }
+        for template, address in templates_urls.items():
+            with self.subTest():
+                response = self.guest_client.get(address)
+                self.assertTemplateUsed(response, template)
