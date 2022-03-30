@@ -103,7 +103,7 @@ class PostCreateFormTests(TestCase):
         self.assertFalse(Post.objects.filter(
             text='Текст поста гостя'
         ).exists())
-    
+
     def test_guest_client_no_edit(self):
         """При POST запросе гостя пост не будет отредактирован"""
         self.guest_client.get(
@@ -155,9 +155,10 @@ class PostCreateFormTests(TestCase):
             text='Текст в форме',
             author=self.user,
         ).exists())
-        def IsTrue(i= self.group):
+
+        def IsTrue(i=self.group):
             return i is None
-        self.assertFalse(IsTrue(i= self.group))
+        self.assertFalse(IsTrue(i=self.group))
 
     def test_change_text_other_fields_same(self):
         """При редактировании текста не меняются другие поля"""

@@ -39,12 +39,15 @@ class PostViewsTests(TestCase):
         templates_pages_names = {
             'posts/index.html': reverse('posts:index'),
             'posts/profile.html': reverse('posts:profile',
-                                          kwargs={'username': f'{self.user.username}'}),
+                                          kwargs={'username':
+                                                  f'{self.user.username}'}),
             'posts/post_detail.html': reverse('posts:post_detail',
-                                              kwargs={'post_id': f'{self.post.id}'}),
+                                              kwargs={'post_id':
+                                                      f'{self.post.id}'}),
             'posts/create_post.html': reverse('posts:post_create'),
             'posts/group_list.html': (
-                reverse('posts:group_list', kwargs={'slug': f'{self.group.slug}'})
+                reverse('posts:group_list', kwargs={'slug':
+                                                    f'{self.group.slug}'})
             ),
         }
         for template, reverse_name in templates_pages_names.items():
@@ -55,7 +58,9 @@ class PostViewsTests(TestCase):
     def test_edit_page_uses_correct_template(self):
         """Страница редактирования использует корректный шаблон"""
         response = self.authorized_author.get(reverse('posts:post_edit',
-                                                      kwargs={'post_id': f'{self.post.id}'}))
+                                                      kwargs={'post_id':
+                                                              f'{self.post.id}'
+                                                              }))
         self.assertTemplateUsed(response, 'posts/create_post.html')
 
     def test_index_page_context(self):
@@ -72,7 +77,8 @@ class PostViewsTests(TestCase):
     def test_group_list_page_context(self):
         """Тест контекста страницы группы"""
         response = self.authorized_client.get(reverse('posts:group_list',
-                                              kwargs={'slug': f'{self.group.slug}'}))
+                                              kwargs={'slug':
+                                                      f'{self.group.slug}'}))
         first_object = response.context['group']
         group_title_0 = first_object.title
         group_slug_0 = first_object.slug
@@ -87,7 +93,9 @@ class PostViewsTests(TestCase):
     def test_profile_page_context(self):
         """Тест контекста страницы профиля пользователя"""
         response = self.authorized_client.get(reverse('posts:profile',
-                                              kwargs={'username': f'{self.author.username}'}))
+                                              kwargs={'username':
+                                                      f'{self.author.username}'
+                                                      }))
         first_object = response.context['author']
         profile_author_0 = first_object.username
         second_object = response.context['page_obj'][0]
@@ -100,7 +108,8 @@ class PostViewsTests(TestCase):
     def test_page_detail_context(self):
         """Тест контекста страницы конкретного поста"""
         response = self.authorized_client.get(reverse('posts:post_detail',
-                                              kwargs={'post_id': f'{self.post.id}'}))
+                                              kwargs={'post_id':
+                                                      f'{self.post.id}'}))
         first_object = response.context['post']
         post_text_0 = first_object.text
         post_id_0 = first_object.id
@@ -121,7 +130,8 @@ class PostViewsTests(TestCase):
 
     def test_edit_page_context(self):
         """Тест контекста страницы редактирования поста"""
-        edit_url = reverse('posts:post_edit', kwargs={'post_id': f'{self.post.id}'})
+        edit_url = reverse('posts:post_edit', kwargs={'post_id':
+                                                      f'{self.post.id}'})
         response = self.authorized_author.get(edit_url)
         first_object = response.context['post']
         post_text_0 = first_object.text
@@ -147,9 +157,11 @@ class PostViewsTests(TestCase):
         response = {
             self.authorized_client.get(reverse('posts:index')),
             self.authorized_client.get(reverse('posts:group_list',
-                                               kwargs={'slug': f'{self.group.slug}'})),
+                                               kwargs={'slug':
+                                                       f'{self.group.slug}'})),
             self.authorized_client.get(reverse(
-                'posts:profile', kwargs={'username': f'{self.author.username}'}))
+                'posts:profile', kwargs={'username': f'{self.author.username}'
+                                         }))
         }
         for resp in response:
             obj = resp.context.get('page_obj').object_list
@@ -182,12 +194,11 @@ class PaginatorViewsTest(TestCase):
         )
         post_list = [
             (Post(
-            text=f'тест паджинатора {i}',
-            author=cls.author,
-            group=cls.group,)
-            )
+                text=f'тест паджинатора {i}',
+                author=cls.author,
+                group=cls.group,))
             for i in range(settings.PGN_RANGE)
-        ]    
+        ]
         Post.objects.bulk_create(post_list)
 
     def setUp(self):
@@ -204,21 +215,25 @@ class PaginatorViewsTest(TestCase):
         urls = {
             reverse('posts:index'),
             reverse('posts:group_list', kwargs={'slug': f'{self.group.slug}'}),
-            reverse('posts:profile', kwargs={'username': f'{self.author.username}'}),
+            reverse('posts:profile', kwargs={'username':
+                                             f'{self.author.username}'}),
         }
         for url in urls:
             response = self.client.get(url)
-            self.assertEqual(len(response.context['page_obj']), settings.PGN_1_PAGE)
+            self.assertEqual(len(response.context['page_obj']),
+                             settings.PGN_1_PAGE)
 
     def test_second_page_contains_three_records(self):
         """Тест страницы паджинатора вывод 3 поста на 2 странице"""
         urls = {
             reverse('posts:index') + '?page=2',
-            reverse('posts:group_list', kwargs={'slug': f'{self.group.slug}'}) + '?page=2',
+            reverse('posts:group_list',
+                    kwargs={'slug': f'{self.group.slug}'}) + '?page=2',
             reverse('posts:profile',
-                    kwargs={'username': f'{self.author.username}'}) + '?page=2',
+                    kwargs={'username':
+                            f'{self.author.username}'}) + '?page=2',
         }
         for url in urls:
             response = self.client.get(url)
             self.assertEqual(len(response.context['page_obj']),
-            (settings.PGN_RANGE)-(settings.PGN_1_PAGE))
+                             (settings.PGN_RANGE) - (settings.PGN_1_PAGE))

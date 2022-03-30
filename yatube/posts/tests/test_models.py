@@ -35,7 +35,7 @@ class PostModelTest(TestCase):
         post = PostModelTest.post
         help_texts = post._meta.get_field('group').help_text
         self.assertEqual(help_texts, 'Группа, '
-                  'к которой относится пост')
+                         'к которой относится пост')
 
     def test_post_model_text_verbose(self):
         """Тест поля text verbose"""
@@ -60,6 +60,7 @@ class PostModelTest(TestCase):
         post = PostModelTest.post
         verbose = post._meta.get_field('group').verbose_name
         self.assertEqual(verbose, 'Группа')
+
 
 class GroupModelTest(TestCase):
     @classmethod
