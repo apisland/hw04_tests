@@ -68,27 +68,25 @@ class PostViewsTests(TestCase):
         response = self.authorized_client.get(reverse('posts:index'))
         first_object = response.context['page_obj'][0]
         post_text_0 = first_object.text
-        post_author_0 = first_object.author.username
-        post_group_0 = first_object.group.title
+        post_author_0 = self.author
+        post_group_0 = self.group
         self.assertEqual(post_text_0, self.post.text)
-        self.assertEqual(post_author_0, f'{self.author.username}')
-        self.assertEqual(post_group_0, self.group.title)
+        self.assertEqual(post_author_0, self.author)
+        self.assertEqual(post_group_0, self.group)
 
     def test_group_list_page_context(self):
         """Тест контекста страницы группы"""
         response = self.authorized_client.get(reverse('posts:group_list',
                                               kwargs={'slug':
                                                       f'{self.group.slug}'}))
-        first_object = response.context['group']
-        group_title_0 = first_object.title
-        group_slug_0 = first_object.slug
-        second_object = response.context['page_obj'][0]
-        post_text_0 = second_object.text
-        post_author_0 = second_object.author.username
+        response.context['group']
+        group_0 = self.group
+        first_object = response.context['page_obj'][0]
+        post_text_0 = first_object.text
+        post_author_0 = self.author
         self.assertEqual(post_text_0, self.post.text)
-        self.assertEqual(post_author_0, f'{self.author.username}')
-        self.assertEqual(group_title_0, self.group.title)
-        self.assertEqual(group_slug_0, f'{self.group.slug}')
+        self.assertEqual(post_author_0, self.author)
+        self.assertEqual(group_0, self.group)
 
     def test_profile_page_context(self):
         """Тест контекста страницы профиля пользователя"""
@@ -96,14 +94,14 @@ class PostViewsTests(TestCase):
                                               kwargs={'username':
                                                       f'{self.author.username}'
                                                       }))
-        first_object = response.context['author']
-        profile_author_0 = first_object.username
-        second_object = response.context['page_obj'][0]
-        post_text_0 = second_object.text
-        post_group_0 = second_object.group.title
+        response.context['author']
+        profile_author_0 = self.author
+        first_object = response.context['page_obj'][0]
+        post_text_0 = first_object.text
+        post_group_0 = self.group
         self.assertEqual(post_text_0, self.post.text)
-        self.assertEqual(post_group_0, self.group.title)
-        self.assertEqual(profile_author_0, f'{self.author.username}')
+        self.assertEqual(post_group_0, self.group)
+        self.assertEqual(profile_author_0, self.author)
 
     def test_page_detail_context(self):
         """Тест контекста страницы конкретного поста"""
@@ -172,12 +170,12 @@ class PostViewsTests(TestCase):
         post = Post.objects.create(
             author=self.author,
             text='Тестовый текст',
-            group=self.group
+            group=None
         )
         response = self.authorized_client.get(reverse(
             'posts:group_list', kwargs={'slug': f'{self.group.slug}'}))
         obj = response.context.get('page_obj').object_list
-        self.assertTrue(post, obj)
+        self.assertNotIn(post, obj)
 
 
 class PaginatorViewsTest(TestCase):

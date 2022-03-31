@@ -25,41 +25,30 @@ class PostModelTest(TestCase):
         self.assertEqual(value, str(post))
 
     def test_post_models_help_text(self):
-        """Тест help_text в модели Post"""
+        """Тест help_texts в модели Post"""
         post = PostModelTest.post
-        help_texts = post._meta.get_field('text').help_text
-        self.assertEqual(help_texts, 'Текст нового поста')
+        values = {
+            'text': 'Текст нового поста',
+            'group': 'Группа, к которой относится пост',
+        }
+        for key, value in values.items():
+            with self.subTest(value=value):
+                help_texts = post._meta.get_field(key).help_text
+        self.assertEqual(help_texts, value)
 
-    def test_post_models_group_help_text(self):
-        """Тест help_text group в модели Post"""
+    def test_post_model_verbose(self):
+        """Тест полей verbose в модели Post"""
         post = PostModelTest.post
-        help_texts = post._meta.get_field('group').help_text
-        self.assertEqual(help_texts, 'Группа, '
-                         'к которой относится пост')
-
-    def test_post_model_text_verbose(self):
-        """Тест поля text verbose"""
-        post = PostModelTest.post
-        verbose = post._meta.get_field('text').verbose_name
-        self.assertEqual(verbose, 'Текст поста')
-
-    def test_post_model_pubdate_verbose(self):
-        """Тест поля pub_date verbose"""
-        post = PostModelTest.post
-        verbose = post._meta.get_field('pub_date').verbose_name
-        self.assertEqual(verbose, 'Дата публикации')
-
-    def test_post_model_author_verbose(self):
-        """Тест поля author verbose"""
-        post = PostModelTest.post
-        verbose = post._meta.get_field('author').verbose_name
-        self.assertEqual(verbose, 'Автор')
-
-    def test_post_model_group_verbose(self):
-        """Тест поля group verbose"""
-        post = PostModelTest.post
-        verbose = post._meta.get_field('group').verbose_name
-        self.assertEqual(verbose, 'Группа')
+        values = {
+            'text': 'Текст поста',
+            'pub_date': 'Дата публикации',
+            'author': 'Автор',
+            'group': 'Группа',
+        }
+        for key, value in values.items():
+            with self.subTest(value=value):
+                verbose = post._meta.get_field(key).verbose_name
+        self.assertEqual(verbose, value)
 
 
 class GroupModelTest(TestCase):
@@ -82,17 +71,12 @@ class GroupModelTest(TestCase):
     def test_group_model_title_verbose(self):
         """Тест поля title verbose"""
         group = GroupModelTest.group
-        verbose = group._meta.get_field('title').verbose_name
-        self.assertEqual(verbose, 'Название группы')
-
-    def test_group_model_slug_verbose(self):
-        """Тест поля slug verbose"""
-        group = GroupModelTest.group
-        verbose = group._meta.get_field('slug').verbose_name
-        self.assertEqual(verbose, 'Идентификатор группы')
-
-    def test_group_model_description_verbose(self):
-        """Тест поля description verbose"""
-        group = GroupModelTest.group
-        verbose = group._meta.get_field('description').verbose_name
-        self.assertEqual(verbose, 'Описание группы')
+        values = {
+            'title': 'Название группы',
+            'slug': 'Идентификатор группы',
+            'description': 'Описание группы',
+        }
+        for key, value in values.items():
+            with self.subTest(value=value):
+                verbose = group._meta.get_field(key).verbose_name
+        self.assertEqual(verbose, value)

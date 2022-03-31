@@ -96,30 +96,3 @@ class PostURLTests(TestCase):
         """Не автор поста редиректится с редактирования чужого поста"""
         response = self.authorized_client.get(f'/posts/{self.post.id}/edit/')
         self.assertRedirects(response, f'/posts/{self.post.id}/')
-
-
-class StaticPagesURLTests(TestCase):
-    def setUp(self):
-        self.guest_client = Client()
-
-    def test_about_url_exists_at_desired_location(self):
-        """Проверка доступности адреса /about/author/ & /about/tech/."""
-        urls = {
-            '/about/author/',
-            '/about/tech/',
-        }
-        for address in urls:
-            with self.subTest():
-                response = self.guest_client.get(address)
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_about_url_uses_correct_template(self):
-        """Проверка шаблона для адреса /about/author & /about/tech/."""
-        templates_urls = {
-            'about/author.html': '/about/author/',
-            'about/tech.html': '/about/tech/',
-        }
-        for template, address in templates_urls.items():
-            with self.subTest():
-                response = self.guest_client.get(address)
-                self.assertTemplateUsed(response, template)
