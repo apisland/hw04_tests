@@ -45,14 +45,20 @@ class PostURLTests(TestCase):
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_url_guest_user_create(self):
-        """Гость редиректится корректно со страници создания поста"""
-        response = self.guest_client.get('/create/')
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        """Гость редиректится со страници создания поста на страницу логина"""
+        response = self.guest_client.get('/create/', follow=True)
+        self.assertRedirects(
+            response, '/auth/login/?next=/create/'
+        )
 
     def test_url_guest_user_edit(self):
-        """Гость редиректится корректно со страници редактирования поста"""
-        response = self.guest_client.get(f'/posts/{self.post.id}/edit/')
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        """Гость редиректится со страницы
+        редактирования поста на страницу логина"""
+        response = self.guest_client.get(f'/posts/{self.post.id}/edit/',
+                                         follow=True)
+        self.assertRedirects(
+            response, '/auth/login/?next='f'/posts/{self.post.id}/edit/'
+        )
 
     def test_url_for_auth_user(self):
         """Страница новая запись доступна авторизованному пользователю."""

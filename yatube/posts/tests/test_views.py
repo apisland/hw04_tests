@@ -79,8 +79,7 @@ class PostViewsTests(TestCase):
         response = self.authorized_client.get(reverse('posts:group_list',
                                               kwargs={'slug':
                                                       f'{self.group.slug}'}))
-        response.context['group']
-        group_0 = self.group
+        group_0 = response.context['group']
         first_object = response.context['page_obj'][0]
         post_text_0 = first_object.text
         post_author_0 = self.author
@@ -94,8 +93,7 @@ class PostViewsTests(TestCase):
                                               kwargs={'username':
                                                       f'{self.author.username}'
                                                       }))
-        response.context['author']
-        profile_author_0 = self.author
+        profile_author_0 = response.context['author']
         first_object = response.context['page_obj'][0]
         post_text_0 = first_object.text
         post_group_0 = self.group
@@ -146,7 +144,9 @@ class PostViewsTests(TestCase):
                 self.assertIsInstance(form_field, expected)
 
     def test_post_get_in_group(self):
-        """Тест страницы создания поста с указанием группы"""
+        """Тест создание поста с указанием группы,
+        пост появится на страницах - главной,
+        группы и профиль пользователя"""
         post = Post.objects.create(
             author=self.author,
             text='Тестовый текст',

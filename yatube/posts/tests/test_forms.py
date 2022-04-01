@@ -1,4 +1,3 @@
-# from tokenize import group
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -29,7 +28,6 @@ class PostCreateFormTests(TestCase):
             author=cls.author,
             text='Тестовый текст',
             group=cls.group,
-            pub_date='Дата публикации'
         )
         cls.form = PostForm()
 
@@ -67,12 +65,9 @@ class PostCreateFormTests(TestCase):
     def test_post_edit_with_post_id(self):
         """При валидной форме редактирования поста
         происходит изменение поста с id в БД"""
-        self.authorized_author.get(
-            reverse('posts:post_edit', kwargs={'post_id': self.post.id}))
         form_data = {
             'text': 'Новый текст в форме',
             'group': self.group_2.id,
-            'post_id': self.post.id
         }
         url = reverse('posts:post_edit', kwargs={'post_id': self.post.id})
         self.authorized_author.post(
@@ -101,85 +96,77 @@ class PostCreateFormTests(TestCase):
             data=form_data,
             follow=True
         )
-        self.assertFalse(Post.objects.filter(
-            text='Текст поста гостя'
-        ).exists())
         self.assertEqual(Post.objects.count(), posts_count)
 
     def test_guest_client_no_edit(self):
         """При POST запросе гостя пост не будет отредактирован"""
         form_data = {
-            'text': 'Текст в форме',
-            'group': self.group.id,
-        }
-        self.guest_client.get(
-            reverse('posts:post_detail', kwargs={'post_id': self.post.id}))
-        form_data_2 = {
             'text': 'Редактированный текст поста гостя',
-            'group': self.group.id,
+            'group': self.group,
         }
+        post = self.post
         self.guest_client.post(
             reverse('posts:post_edit', kwargs={'post_id': self.post.id}),
-            data=form_data_2,
+            data=form_data,
             follow=True,
         )
-        self.assertTrue(form_data)
+        same_post = Post.objects.get(id=self.post.id)
+        self.assertEqual(same_post.text, post.text)
+        self.assertEqual(same_post.group, post.group)
+        self.assertEqual(same_post.author, post.author)
+        self.assertEqual(same_post.pub_date, post.pub_date)
 
     def test_auth_user_no_author_no_edit(self):
         """Авторизованный юзер, но не автор, не может редактировать."""
         form_data = {
-            'text': 'Текст в форме',
-            'group': self.group.id,
-            'post_id': self.post.id,
-            'pub_date': self.post.pub_date,
-        }
-        self.authorized_client.get(
-            reverse('posts:post_edit', kwargs={'post_id': self.post.id}))
-        form_data_2 = {
             'text': 'Новый текст в форме',
-            'group': self.group.id,
-            'post_id': self.post.id
+            'group': self.group,
+            'author': self.author,
         }
+        post = self.post
         self.authorized_client.post(
             reverse('posts:post_edit', kwargs={'post_id': self.post.id}),
-            data=form_data_2,
+            data=form_data,
             follow=True,
         )
-        self.assertTrue(form_data)
+        same_post = Post.objects.get(id=self.post.id)
+        self.assertEqual(same_post.text, post.text)
+        self.assertEqual(same_post.group, post.group)
+        self.assertEqual(same_post.author, post.author)
+        self.assertEqual(same_post.pub_date, post.pub_date)
 
     def test_post_create_without_group(self):
         """Создание нового поста без указания группы"""
+        posts_count = Post.objects.all().count()
         form_data = {
-            'text': 'Текст в форме',
+            'text': 'Тестовый текст в форме',
         }
         self.authorized_client.post(
             reverse('posts:post_create'),
             data=form_data,
             follow=True,
         )
-        last_post = Post.objects.filter(
-            text='Текст в форме',
-            author=self.user,
-            group=None
-        ).last()
-        self.assertTrue(last_post)
+        last_post = Post.objects.latest('pub_date')
+        self.assertEqual(posts_count + 1, Post.objects.all().count())
+        self.assertEqual(last_post.text, form_data['text'])
+        self.assertEqual(last_post.author, self.user)
+        self.assertEqual(last_post.group, None)
 
     def test_change_text_other_fields_same(self):
         """При редактировании текста не меняются другие поля"""
-        self.authorized_author.get(
-            reverse('posts:post_edit', kwargs={'post_id': self.post.id}))
         form_data = {
             'text': 'Новый текст в форме',
+            'group': self.group,
         }
+        post = self.post
         url = reverse('posts:post_edit', kwargs={'post_id': self.post.id})
         self.authorized_author.post(
             url,
             data=form_data,
             follow=True
         )
-        self.assertTrue(Post.objects.filter(
-            text='Новый текст в форме'
-        ).exists())
-        self.assertTrue(self.group)
-        self.assertTrue(self.author)
-        self.assertTrue(self.post.pub_date)
+        same_post = Post.objects.get(id=self.post.id)
+        self.assertEqual(same_post.text, post.text)
+        self.assertEqual(same_post.group, post.group)
+        self.assertEqual(same_post.author, post.author)
+        self.assertEqual(same_post.pub_date, post.pub_date)
