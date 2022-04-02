@@ -65,6 +65,7 @@ class PostCreateFormTests(TestCase):
     def test_post_edit_with_post_id(self):
         """При валидной форме редактирования поста
         происходит изменение поста с id в БД"""
+        posts_count = Post.objects.count()
         form_data = {
             'text': 'Новый текст в форме',
             'group': self.group_2.id,
@@ -83,6 +84,7 @@ class PostCreateFormTests(TestCase):
                 id=self.post.id,
             ).exists()
         )
+        self.assertEqual(Post.objects.count(), posts_count)
 
     def test_guest_client_no_create(self):
         """При POST запросе гость не может создать новый пост"""
@@ -121,7 +123,6 @@ class PostCreateFormTests(TestCase):
         form_data = {
             'text': 'Новый текст в форме',
             'group': self.group,
-            'author': self.author,
         }
         post = self.post
         self.authorized_client.post(
